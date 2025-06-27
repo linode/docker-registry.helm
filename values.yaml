@@ -12,6 +12,12 @@ updateStrategy: {}
 podAnnotations: {}
 podLabels: {}
 
+# DaemonSet for host configuration
+daemonset:
+  enabled: false
+  priorityClassName: system-node-critical
+  annotations: {}
+
 serviceAccount:
   create: false
   name: ""

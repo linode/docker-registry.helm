@@ -11,6 +11,7 @@ This directory contains a Kubernetes chart to deploy a private Docker Registry.
 This chart will do the following:
 
 * Implement a Docker registry deployment
+* Optionally deploy a DaemonSet to add registry service names to /etc/hosts on each node
 
 ## Installing the Chart
 
@@ -37,6 +38,9 @@ their default values.
 | `image.repository`          | Container image to use                                                                     | `registry`      |
 | `image.tag`                 | Container image tag to deploy                                                              | `2.8.1`         |
 | `imagePullSecrets`          | Specify image pull secrets                                                                 | `nil` (does not add image pull secrets to deployed pods) |
+| `daemonset.enabled`         | Deploy a DaemonSet that adds registry service domain names to /etc/hosts on each node      | `false`         |
+| `daemonset.priorityClassName` | Priority class for the hosts updater DaemonSet pods                                      | `""`            |
+| `daemonset.annotations`     | Annotations to add to the DaemonSet                                                        | `{}`            |
 | `persistence.accessMode`    | Access mode to use for PVC                                                                 | `ReadWriteOnce` |
 | `persistence.enabled`       | Whether to use a PVC for the Docker storage                                                | `false`         |
 | `persistence.deleteEnabled` | Enable the deletion of image blobs and manifests by digest                                 | `nil`           |
