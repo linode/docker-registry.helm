@@ -12,6 +12,11 @@ updateStrategy: {}
 podAnnotations: {}
 podLabels: {}
 
+localRegistryHosting:
+  enabled: false
+  # It's hard to infer an external address from helm.
+  externalAddr: ~
+
 # DaemonSet for host configuration
 daemonset:
   enabled: false
@@ -131,6 +136,10 @@ proxy:
   # the ref for a secret stored outside of this chart
   # Keys: proxyUsername, proxyPassword
   secretRef: ""
+  tls: {}
+    # ca.crt: ""
+    # tls.crt: ""
+    # tls.key: ""
 
 metrics:
   enabled: false
