@@ -1,4 +1,6 @@
 {{- if .Values.daemonset.enabled }}
+{{- $hostSetupSh := .Files.Get "files/host-setup.sh" }}
+{{- $cmData := dict "host-setup.sh" $hostSetupSh }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -23,6 +25,8 @@ spec:
       labels:
         app: {{ template "docker-registry.name" . }}-hostconfig
         release: {{ .Release.Name }}
+      annotations:
+        configmap-hash: {{ $cmData | toYaml | sha256sum }}
     spec:
       hostNetwork: true
       {{- if .Values.daemonset.priorityClassName }}
@@ -34,58 +38,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - sh
-            - -c
-            - |
-              # Verify required environment variables
-              if [ -z "$NAMESPACE" ]; then
-                echo "ERROR: NAMESPACE environment variable is not set or empty"
-                exit 1
-              fi
-
-              if [ -z "$SERVICE_NAME" ]; then
-                echo "ERROR: SERVICE_NAME environment variable is not set or empty"
-                exit 1
-              fi
-
-              if [ -z "$SERVICE_PORT" ]; then
-                echo "ERROR: SERVICE_PORT environment variable is not set or empty"
-                exit 1
-              fi
-
-              echo "Using NAMESPACE=$NAMESPACE, SERVICE_NAME=$SERVICE_NAME, SERVICE_PORT=$SERVICE_PORT"
-
-              # Extract cluster domain from resolv.conf
-              cluster_domain="cluster.local"
-              search_line=$(grep -E "^search|^domain" /etc/resolv.conf | head -1)
-              if echo "$search_line" | grep -q "${NAMESPACE}.svc"; then
-                cluster_domain=$(echo "$search_line" | grep -o "${NAMESPACE}.svc.[^ ]*" | sed "s/${NAMESPACE}.svc.//")
-              fi
-              echo "Detected cluster domain: ${cluster_domain}"
-
-              prefixes="${SERVICE_NAME} ${SERVICE_NAME}.${NAMESPACE} ${SERVICE_NAME}.${NAMESPACE}.svc ${SERVICE_NAME}.${NAMESPACE}.svc.${cluster_domain}"
-
-              hosts_entry="127.0.0.1 ${prefixes}"
-
-              # Remove any existing entries that might be outdated
-              sed -i "/.*${SERVICE_NAME}.*/d" /host/etc/hosts
-
-              echo "$hosts_entry" >> /host/etc/hosts
-              echo "Added/Updated hosts entries for registry service: $hosts_entry"
-
-              echo "Configuring containerd to allow insecure registries..."
-
-              for prefix in $prefixes; do
-                cert_dir="/host/etc/containerd/certs.d/${prefix}:${SERVICE_PORT}"
-                echo "Creating directory: ${cert_dir}"
-                mkdir -p "${cert_dir}"
-
-                echo "Writing hosts.toml for ${prefix}:${SERVICE_PORT}"
-                echo "[host.\"http://${prefix}:${SERVICE_PORT}\"]" > "${cert_dir}/hosts.toml"
-                echo "capabilities = [\"pull\", \"resolve\"]" >> "${cert_dir}/hosts.toml"
-                echo "plain-http = true" >> "${cert_dir}/hosts.toml"
-              done
-
-              sleep infinity
+            - /configmap/host-setup.sh
           env:
             - name: NAMESPACE
               valueFrom:
@@ -102,11 +55,33 @@ spec:
               mountPath: /host/etc/hosts
               subPath: hosts
             - name: etc
-              mountPath: /host/etc/containerd/certs.d
-              subPath: containerd/certs.d
+              mountPath: /host/etc/containerd
+              subPath: containerd
+            - name: configmap
+              mountPath: /configmap
+              readOnly: true
       volumes:
         - name: etc
           hostPath:
             path: /etc
+        - name: configmap
+          configMap:
+            name: {{ template "docker-registry.fullname" . }}-hostconfig
       terminationGracePeriodSeconds: 5
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "docker-registry.fullname" . }}-hostconfig
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    app: {{ template "docker-registry.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  {{- if .Values.daemonset.annotations }}
+  annotations:
+    {{- toYaml .Values.daemonset.annotations | nindent 4 }}
+  {{- end }}
+{{ dict "data" $cmData | toYaml }}
 {{- end }}
