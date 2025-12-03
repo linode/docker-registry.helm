@@ -48,6 +48,8 @@ spec:
               value: {{ template "docker-registry.fullname" . }}
             - name: SERVICE_PORT
               value: "{{ .Values.service.nodePort | default "" | required "service.nodePort required for daemonset to work" }}"
+            - name: ADDITIONAL_HOSTS
+              value: {{ .Values.daemonset.additionalHosts | join " " }}
           securityContext:
             privileged: true
           volumeMounts:

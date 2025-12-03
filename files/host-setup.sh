@@ -82,7 +82,7 @@ if search_line=$(grep -E "^search|^domain" /etc/resolv.conf | head -1); then
 fi
 echo "Detected cluster domain: ${cluster_domain}"
 
-prefixes="${SERVICE_NAME} ${SERVICE_NAME}.${NAMESPACE} ${SERVICE_NAME}.${NAMESPACE}.svc ${SERVICE_NAME}.${NAMESPACE}.svc.${cluster_domain}"
+prefixes="${SERVICE_NAME} ${SERVICE_NAME}.${NAMESPACE} ${SERVICE_NAME}.${NAMESPACE}.svc ${SERVICE_NAME}.${NAMESPACE}.svc.${cluster_domain}${ADDITIONAL_HOSTS:+ ${ADDITIONAL_HOSTS}}"
 
 hosts_entry="127.0.0.1 ${prefixes}"
 

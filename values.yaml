@@ -22,6 +22,7 @@ daemonset:
   enabled: false
   priorityClassName: system-node-critical
   annotations: {}
+  additionalHosts: []
 
 serviceAccount:
   create: false
