@@ -143,16 +143,20 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- if .Values.proxy.enabled }}
 - name: REGISTRY_PROXY_REMOTEURL
   value: {{ required ".Values.proxy.remoteurl is required" .Values.proxy.remoteurl }}
+{{- if .Values.proxy.username }}
 - name: REGISTRY_PROXY_USERNAME
   valueFrom:
     secretKeyRef:
       name: {{ if .Values.proxy.secretRef }}{{ .Values.proxy.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
       key: proxyUsername
+{{- end }}
+{{- if .Values.proxy.password }}
 - name: REGISTRY_PROXY_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ if .Values.proxy.secretRef }}{{ .Values.proxy.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
       key: proxyPassword
+{{- end }}
 {{- end -}}
 
 {{- if .Values.persistence.deleteEnabled }}
