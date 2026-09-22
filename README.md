@@ -17,13 +17,13 @@ This chart will do the following:
 First, add the repo:
 
 ```console
-$ helm repo add twuni https://helm.twun.io
+helm repo add twuni https://helm.twun.io
 ```
 
 To install the chart, use the following:
 
 ```console
-$ helm install twuni/docker-registry
+helm install twuni/docker-registry
 ```
 
 ## Configuration
@@ -35,7 +35,7 @@ their default values.
 |:----------------------------|:-------------------------------------------------------------------------------------------|:----------------|
 | `image.pullPolicy`          | Container pull policy                                                                      | `IfNotPresent`  |
 | `image.repository`          | Container image to use                                                                     | `registry`      |
-| `image.tag`                 | Container image tag to deploy                                                              | `2.7.1`         |
+| `image.tag`                 | Container image tag to deploy                                                              | `2.8.1`         |
 | `imagePullSecrets`          | Specify image pull secrets                                                                 | `nil` (does not add image pull secrets to deployed pods) |
 | `persistence.accessMode`    | Access mode to use for PVC                                                                 | `ReadWriteOnce` |
 | `persistence.enabled`       | Whether to use a PVC for the Docker storage                                                | `false`         |
@@ -46,6 +46,7 @@ their default values.
 | `serviceAccount.create`     | Create ServiceAccount                                                                      | `false`         |
 | `serviceAccount.name`       | ServiceAccount name                                                                        | `nil`           |
 | `serviceAccount.annotations` | Annotations to add to the ServiceAccount                                                  | `{}`            |
+| `deployment.annotations`    | Annotations to add to the Deployment                                                       | `{}`            |
 | `service.port`              | TCP port on which the service is exposed                                                   | `5000`          |
 | `service.type`              | service type                                                                               | `ClusterIP`     |
 | `service.clusterIP`         | if `service.type` is `ClusterIP` and this is non-empty, sets the cluster IP of the service | `nil`           |
@@ -73,7 +74,7 @@ their default values.
 | `secrets.htpasswd`          | Htpasswd authentication                                                                    | `nil`           |
 | `secrets.s3.accessKey`      | Access Key for S3 configuration                                                            | `nil`           |
 | `secrets.s3.secretKey`      | Secret Key for S3 configuration                                                            | `nil`           |
-| `secrets.s3.secretRef`      | The ref for an external secret containing the accessKey and secretKey keys                 | `""`            |
+| `secrets.s3.secretRef`      | The ref for an external secret containing the s3AccessKey and s3SecretKey keys                 | `""`            |
 | `secrets.swift.username`    | Username for Swift configuration                                                           | `nil`           |
 | `secrets.swift.password`    | Password for Swift configuration                                                           | `nil`           |
 | `secrets.haSharedSecret`    | Shared secret for Registry                                                                 | `nil`           |
@@ -116,11 +117,12 @@ their default values.
 | `extraEnvVars`              | Additional environment variables to the pod                                                | `[]`            |
 | `initContainers`            | Init containers to be created in the pod                                                   | `[]`            |
 | `garbageCollect.enabled`    | If true, will deploy garbage-collector cronjob                                             | `false`         |
-| `garbageCollect.deleteUntagged` | If true, garbage-collector will delete manifests that are not currently referenced via tag | `true` |    |
-| `garbageCollect.schedule`   | CronTab schedule, please use standard crontab format                                        | `0 1 * * *` |  |
+| `garbageCollect.deleteUntagged` | If true, garbage-collector will delete manifests that are not currently referenced via tag | `true`      |
+| `garbageCollect.schedule`   | CronTab schedule, please use standard crontab format                                       | `0 1 * * *`     |
+| `garbageCollect.resources`  | garbage-collector requested resources                                                      | `{}`            |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to
 `helm install`.
 
 To generate htpasswd file, run this docker command:
-`docker run --entrypoint htpasswd registry:2 -Bbn user password > ./htpasswd`.
+`docker run --entrypoint htpasswd httpd:2 -Bbn user password > ./htpasswd`.
