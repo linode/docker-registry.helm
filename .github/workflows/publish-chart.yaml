@@ -1,0 +1,43 @@
+name: Publish Helm Chart to GHCR
+
+on:
+  push:
+    tags:
+      - '*-kpp*'
+      - 'v*-kpp*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Package and Push to GHCR
+        env:
+          HELM_EXPERIMENTAL_OCI: 1
+        run: |
+          # GHCR requires repository and owner names to be strictly lowercase
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          TAG="${{ github.ref_name }}"
+
+          # Strip optional leading 'v' to get valid SemVer (e.g. v2.2.2-kpp-2023-08-24 -> 2.2.2-kpp-2023-08-24)
+          VERSION="${TAG#v}"
+
+          echo "Packaging chart version: ${VERSION}"
+          mkdir -p dist
+          helm package . --version "${VERSION}" --destination dist/
+
+          # Log in to GHCR
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          # Push to GHCR
+          PKG=$(find dist -name "*.tgz" | head -n 1)
+          echo "Pushing ${PKG} to oci://ghcr.io/${OWNER}..."
+          helm push "${PKG}" "oci://ghcr.io/${OWNER}"
