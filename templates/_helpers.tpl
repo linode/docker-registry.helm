@@ -75,12 +75,12 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
   valueFrom:
     secretKeyRef:
       name: {{ if .Values.secrets.s3.secretRef }}{{ .Values.secrets.s3.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
-      key: s3AccessKey
+      key: {{ if .Values.secrets.s3.accessKeyName }}{{ .Values.secrets.s3.accessKeyName }}{{ else }} s3AccessKey {{ end }}
 - name: REGISTRY_STORAGE_S3_SECRETKEY
   valueFrom:
     secretKeyRef:
       name: {{ if .Values.secrets.s3.secretRef }}{{ .Values.secrets.s3.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
-      key: s3SecretKey
+      key: {{ if .Values.secrets.s3.secretKeyName}}{{ .Values.secrets.s3.secretKeyName}}{{ else }} s3SecretKey {{ end }}
 {{- end -}}
 
 {{- if .Values.s3.regionEndpoint }}
@@ -103,6 +103,36 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
   value: {{ .Values.s3.secure | quote }}
 {{- end -}}
 
+{{- if .Values.s3.chunksize }}
+- name: REGISTRY_STORAGE_S3_CHUNKSIZE
+  value: {{ .Values.s3.chunksize | quote }}
+{{- end -}}
+
+{{- if .Values.s3.multipartcopychunksize }}
+- name: REGISTRY_STORAGE_S3_MULTIPARTCOPYCHUNKSIZE
+  value: {{ .Values.s3.multipartcopychunksize | quote }}
+{{- end -}}
+
+{{- if .Values.s3.multipartcopymaxconcurrency }}
+- name: REGISTRY_STORAGE_S3_MULTIPARTCOPYMAXCONCURRENCY
+  value: {{ .Values.s3.multipartcopymaxconcurrency | quote }}
+{{- end -}}
+
+{{- if .Values.s3.multipartcopythresholdsize }}
+- name: REGISTRY_STORAGE_S3_MULTIPARTCOPYTHRESHOLDSIZE
+  value: {{ .Values.s3.multipartcopythresholdsize | quote }}
+{{- end -}}
+
+{{- if .Values.s3.forcepathstyle }}
+- name: REGISTRY_STORAGE_S3_FORCEPATHSTYLE
+  value: {{ .Values.s3.forcepathstyle | quote }}
+{{- end -}}
+
+{{- if .Values.s3.skipverify }}
+- name: REGISTRY_STORAGE_S3_SKIPVERIFY
+  value: {{ .Values.s3.skipverify | quote }}
+{{- end -}}
+
 {{- else if eq .Values.storage "swift" }}
 - name: REGISTRY_STORAGE_SWIFT_AUTHURL
   value: {{ required ".Values.swift.authurl is required" .Values.swift.authurl }}
@@ -123,16 +153,20 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- if .Values.proxy.enabled }}
 - name: REGISTRY_PROXY_REMOTEURL
   value: {{ required ".Values.proxy.remoteurl is required" .Values.proxy.remoteurl }}
+{{- if .Values.proxy.username }}
 - name: REGISTRY_PROXY_USERNAME
   valueFrom:
     secretKeyRef:
       name: {{ if .Values.proxy.secretRef }}{{ .Values.proxy.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
       key: proxyUsername
+{{- end }}
+{{- if .Values.proxy.password }}
 - name: REGISTRY_PROXY_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ if .Values.proxy.secretRef }}{{ .Values.proxy.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
       key: proxyPassword
+{{- end }}
 {{- end -}}
 
 {{- if .Values.persistence.deleteEnabled }}
@@ -148,7 +182,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 
 {{- define "docker-registry.volumeMounts" -}}
 - name: "{{ template "docker-registry.fullname" . }}-config"
-  mountPath: "/etc/docker/registry"
+  mountPath: {{ .Values.configPath }}
 
 {{- if .Values.secrets.htpasswd }}
 - name: auth
