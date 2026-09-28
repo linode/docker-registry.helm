@@ -83,12 +83,12 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
       key: {{ if .Values.secrets.s3.secretKeyName}}{{ .Values.secrets.s3.secretKeyName}}{{ else }} s3SecretKey {{ end }}
 {{- end -}}
 
-{{- if .Values.s3.regionEndpoint }}
+{{- if or .Values.s3.regionEndpoint .Values.secrets.s3RegionEndpoint.secretRef }}
 - name: REGISTRY_STORAGE_S3_REGIONENDPOINT
   valueFrom:
     secretKeyRef:
-      name: {{ template "docker-registry.fullname" . }}-secret
-      key: s3Endpoint
+      name: {{ if .Values.secrets.s3RegionEndpoint.secretRef }}{{ .Values.secrets.s3RegionEndpoint.secretRef }}{{ else }}{{ template "docker-registry.fullname" . }}-secret{{ end }}
+      key: {{ if .Values.secrets.s3RegionEndpoint.secretKeyName }}{{ .Values.secrets.s3RegionEndpoint.secretKeyName }}{{ else }} s3RegionEndpoint {{ end }}
 {{- end -}}
 
 {{- if .Values.s3.rootdirectory }}
