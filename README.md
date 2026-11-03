@@ -93,7 +93,11 @@ their default values.
 | `secrets.htpasswd`          | Htpasswd authentication                                                                    | `nil`           |
 | `secrets.s3.accessKey`      | Access Key for S3 configuration                                                            | `nil`           |
 | `secrets.s3.secretKey`      | Secret Key for S3 configuration                                                            | `nil`           |
-| `secrets.s3.secretRef`      | The ref for an external secret containing the s3AccessKey and s3SecretKey keys                 | `""`            |
+| `secrets.s3.secretRef`      | The ref for an external secret containing the s3AccessKey and s3SecretKey keys             | `""`            |
+| `secrets.s3.accessKeyName`  | The name of the field in the secret containing the s3 access key                           | `"s3AccessKey"` |
+| `secrets.s3.secretKeyName`  | The name of the field in the secret containing the s3 secret key                           | `"s3SecretKey"` |
+| `secrets.s3RegionEndpoint.secretRef`      | The ref for an external secret containing the s3 region endpoint             | `""`            |
+| `secrets.s3RegionEndpoint.name`      | The name of the field in the secret containing the s3 region endpoint          | `"s3RegionEndpoint"` |
 | `secrets.swift.username`    | Username for Swift configuration                                                           | `nil`           |
 | `secrets.swift.password`    | Password for Swift configuration                                                           | `nil`           |
 | `secrets.haSharedSecret`    | Shared secret for Registry                                                                 | `nil`           |

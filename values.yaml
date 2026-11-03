@@ -104,6 +104,12 @@ secrets:
 #     accessKeyName: "" # defaults to s3AccessKey if not specified
 #     accessKey: ""
 #     secretKey: ""
+# Secrets for S3 region endpoint
+# Use a secret ref with the endpoint for an endpoint stored outside the chart
+#   s3RegionEndpoint:
+#     secretRef: ""
+#     name: "" # defaults to s3RegionEndpoint if not specified
+#
 # Secrets for Swift username and password
 #   swift:
 #     username: ""

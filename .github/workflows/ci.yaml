@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.4
       - run: |
-          helm lint --strict
+          helm lint --strict .
   integration-test:
     name: Integration Test
     runs-on: ubuntu-latest
@@ -32,6 +32,7 @@ jobs:
         name: Create K3D Cluster with Container Registry
         with:
           cluster-name: local-ci-k3d-cluster
+          k3d-version: v5.9.0
           args: >-
             --agents 1
             --registry-create local-ci-k3d-registry
